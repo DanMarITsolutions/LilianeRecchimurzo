@@ -281,6 +281,7 @@ footer{background:var(--cream);border-top:1px solid var(--red-line);padding:48px
   <div class="contact-form-wrap reveal reveal-delay-2">
     <h3>Enviar un mensaje</h3>
     <form class="contact-form" novalidate>
+      <input type="hidden" name="access_key" value="f17e5513-e02c-4598-9412-0f0873348080"/>
       <div class="form-group">
         <label for="nombre">Nombre completo</label>
         <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required/>
@@ -328,7 +329,39 @@ if(reveals.length){
 const si=document.querySelector('.scroll-indicator');
 if(si){window.addEventListener('scroll',()=>{si.style.opacity=window.scrollY>120?'0':'1';},{passive:true});}
 const form=document.querySelector('.contact-form');
-if(form){form.addEventListener('submit',e=>{e.preventDefault();const btn=form.querySelector('button[type="submit"]');const orig=btn.textContent;btn.textContent='Enviado ✓';btn.disabled=true;btn.style.background='var(--red)';btn.style.color='var(--cream)';setTimeout(()=>{btn.textContent=orig;btn.disabled=false;btn.style.background='';btn.style.color='';form.reset();},3500);});}
+if(form){
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
+      });
+      const data = await res.json();
+      if (data.success) {
+        btn.textContent = 'Enviado ✓';
+        btn.style.background = 'var(--red)';
+        btn.style.color = 'var(--cream)';
+        form.reset();
+      } else {
+        btn.textContent = 'Error, inténtalo de nuevo';
+      }
+    } catch (err) {
+      btn.textContent = 'Error, inténtalo de nuevo';
+    }
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.disabled = false;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 3500);
+  });
+}
 document.querySelectorAll('.project-card').forEach(card=>{card.addEventListener('mousemove',e=>{const r=card.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;card.style.transform=`perspective(800px) rotateY(${x*3}deg) rotateX(${-y*2}deg)`;});card.addEventListener('mouseleave',()=>{card.style.transform='';});});
 </script>
 </body></html>
